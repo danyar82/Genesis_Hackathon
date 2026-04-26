@@ -1,26 +1,137 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-background: #050509;
+  --color-foreground: #ededf0;
+
+  --color-genesis-purple: #8b5cf6;
+  --color-genesis-blue: #3b82f6;
+  --color-genesis-cyan: #06b6d4;
+  --color-genesis-violet: #6d28d9;
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  --animate-orb-drift: orb-drift 22s ease-in-out infinite;
+  --animate-pulse-glow: pulse-glow 3.2s ease-in-out infinite;
+  --animate-shimmer: shimmer 6s linear infinite;
+  --animate-helix-spin: helix-spin 5s linear infinite;
+  --animate-helix-node: helix-node 2.6s ease-in-out infinite;
+  --animate-hero-sweep: hero-sweep 14s ease-in-out infinite alternate;
+  --animate-hero-pulse: hero-pulse 9s ease-in-out infinite;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@keyframes orb-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  33% {
+    transform: translate3d(8%, -6%, 0) scale(1.08);
+  }
+  66% {
+    transform: translate3d(-6%, 10%, 0) scale(0.94);
   }
 }
 
+@keyframes pulse-glow {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 1px rgba(139, 92, 246, 0.15),
+      0 0 24px -6px rgba(139, 92, 246, 0.25);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px rgba(139, 92, 246, 0.35),
+      0 0 48px -4px rgba(139, 92, 246, 0.55);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+@keyframes helix-spin {
+  from {
+    transform: rotateY(0deg);
+  }
+  to {
+    transform: rotateY(360deg);
+  }
+}
+
+/* Per-node breathing — opacity + brightness, ease-in-out. Avoids `transform`
+ * because each node's inline `transform` already encodes its 3D position
+ * along the helix; overwriting that here would collapse the strand. With
+ * the per-index animation-delay applied inline, the brightness flows down
+ * the strand like a propagating wave. */
+@keyframes helix-node {
+  0%,
+  100% {
+    opacity: 0.7;
+    filter: brightness(0.85);
+  }
+  50% {
+    opacity: 1;
+    filter: brightness(1.45);
+  }
+}
+
+@keyframes hero-sweep {
+  0% {
+    transform: translate3d(-12%, 0, 0) rotate(-1deg);
+    opacity: 0.65;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(12%, 0, 0) rotate(1deg);
+    opacity: 0.8;
+  }
+}
+
+@keyframes hero-pulse {
+  0%,
+  100% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+}
+
+html,
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+body {
+  background-image:
+    radial-gradient(
+      1200px 600px at 50% -10%,
+      rgba(139, 92, 246, 0.08),
+      transparent 60%
+    ),
+    radial-gradient(
+      800px 400px at 100% 100%,
+      rgba(6, 182, 212, 0.06),
+      transparent 60%
+    );
+  background-attachment: fixed;
+}
+
+::selection {
+  background: rgba(139, 92, 246, 0.35);
+  color: #fff;
 }

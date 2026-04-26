@@ -1,0 +1,335 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "slug": "lorenz-attractor-1963",
+      "title": "Deterministic Nonperiodic Flow",
+      "shortTitle": "Lorenz Attractor",
+      "authors": ["Edward N. Lorenz"],
+      "year": 1963,
+      "category": "physics",
+      "tagline": "Three coupled ODEs that proved chaos lives inside determinism.",
+      "originalUrl": "https://journals.ametsoc.org/view/journals/atsc/20/2/1520-0469_1963_020_0130_dnf_2_0_co_2.xml",
+      "dna": {
+        "title": "Lorenz Attractor — Deterministic Nonperiodic Flow",
+        "classification": "simulation",
+        "core_algorithm": "A reduction of Saltzman's atmospheric convection equations to three coupled nonlinear ODEs in (x, y, z). Despite full determinism, trajectories starting from infinitesimally close initial conditions diverge exponentially — the canonical demonstration of sensitive dependence on initial conditions, popularly summarized as the butterfly effect. The kernel integrates the system with a small time step and emits the trajectory as time series.",
+        "equations": [
+          "\\dot{x} = \\sigma(y - x)",
+          "\\dot{y} = x(\\rho - z) - y",
+          "\\dot{z} = x y - \\beta z"
+        ],
+        "parameters": [
+          { "name": "sigma", "description": "Prandtl number", "default_value": 10, "min": 1, "max": 25, "type": "number" },
+          { "name": "rho", "description": "Rayleigh ratio (chaotic regime above ~24.74)", "default_value": 28, "min": 0.5, "max": 60, "type": "number" },
+          { "name": "beta", "description": "Geometric aspect ratio", "default_value": 2.6667, "min": 0.5, "max": 5, "type": "number" },
+          { "name": "dt", "description": "Integration step size", "default_value": 0.01, "min": 0.001, "max": 0.05, "type": "number" },
+          { "name": "steps", "description": "Number of integration steps to plot", "default_value": 3000, "min": 200, "max": 5000, "type": "number" }
+        ],
+        "visualization_type": "2d_chart",
+        "code_kernel": "export default function(params) {\n  const sigma = params.sigma ?? 10;\n  const rho = params.rho ?? 28;\n  const beta = params.beta ?? (8 / 3);\n  const dt = Math.max(0.0005, Math.min(0.1, params.dt ?? 0.01));\n  const N = Math.max(100, Math.min(5000, (params.steps | 0) || 3000));\n  let x = 1, y = 1, z = 1;\n  const out = [];\n  for (let i = 0; i < N; i++) {\n    const dx = sigma * (y - x);\n    const dy = x * (rho - z) - y;\n    const dz = x * y - beta * z;\n    x += dx * dt;\n    y += dy * dt;\n    z += dz * dt;\n    out.push({ t: i * dt, x, y, z });\n  }\n  return out;\n}\n"
+      }
+    },
+    {
+      "slug": "game-of-life-1970",
+      "title": "Mathematical Games — The fantastic combinations of John Conway's new solitaire game 'life'",
+      "shortTitle": "Conway's Game of Life",
+      "authors": ["John H. Conway", "Martin Gardner"],
+      "year": 1970,
+      "category": "math",
+      "tagline": "Two birth/survival rules. From them: gliders, oscillators, Turing-completeness.",
+      "originalUrl": "https://www.scientificamerican.com/article/mathematical-games-1970-10/",
+      "dna": {
+        "title": "Conway's Game of Life — Population Dynamics",
+        "classification": "simulation",
+        "core_algorithm": "A two-dimensional cellular automaton on a toroidal grid. Each cell is alive or dead; on every tick a cell survives if it has 2 or 3 live neighbors, a dead cell becomes alive if it has exactly 3 live neighbors, and otherwise it dies. From this minimal local rule, complex global structures emerge — gliders, oscillators, and Turing-complete configurations. The kernel seeds a random grid and reports the live-cell population per generation.",
+        "equations": [
+          "s_{t+1}(i,j) = \\mathbb{1}\\!\\left[ N(i,j) = 3 \\;\\lor\\; (s_t(i,j) = 1 \\;\\land\\; N(i,j) = 2) \\right]",
+          "N(i,j) = \\sum_{|du|+|dv|>0,\\; |du|,|dv|\\le 1} s_t(i+du,\\, j+dv)"
+        ],
+        "parameters": [
+          { "name": "density", "description": "Initial fraction of live cells", "default_value": 0.32, "min": 0.05, "max": 0.7, "type": "number" },
+          { "name": "generations", "description": "Number of generations to simulate", "default_value": 200, "min": 20, "max": 500, "type": "number" },
+          { "name": "size", "description": "Grid edge length (cells)", "default_value": 64, "min": 24, "max": 96, "type": "number" },
+          { "name": "seed", "description": "Pseudo-random seed", "default_value": 42, "min": 1, "max": 9999, "type": "number" }
+        ],
+        "visualization_type": "2d_chart",
+        "code_kernel": "export default function(params) {\n  const W = Math.max(24, Math.min(96, (params.size | 0) || 64));\n  const H = W;\n  const G = Math.max(20, Math.min(500, (params.generations | 0) || 200));\n  const density = Math.max(0.05, Math.min(0.7, params.density ?? 0.32));\n  let rng = ((params.seed | 0) || 42) >>> 0;\n  const rand = () => { rng = (Math.imul(rng, 1664525) + 1013904223) >>> 0; return rng / 4294967296; };\n  let grid = new Uint8Array(W * H);\n  for (let i = 0; i < grid.length; i++) grid[i] = rand() < density ? 1 : 0;\n  const out = [];\n  for (let g = 0; g < G; g++) {\n    let alive = 0;\n    for (let i = 0; i < grid.length; i++) alive += grid[i];\n    out.push({ generation: g, population: alive, fraction: alive / grid.length });\n    const next = new Uint8Array(W * H);\n    for (let y = 0; y < H; y++) {\n      const ym = (y - 1 + H) % H, yp = (y + 1) % H;\n      for (let x = 0; x < W; x++) {\n        const xm = (x - 1 + W) % W, xp = (x + 1) % W;\n        const n = grid[ym * W + xm] + grid[ym * W + x] + grid[ym * W + xp]\n                + grid[y  * W + xm] +                   grid[y  * W + xp]\n                + grid[yp * W + xm] + grid[yp * W + x] + grid[yp * W + xp];\n        const cell = grid[y * W + x];\n        next[y * W + x] = cell ? ((n === 2 || n === 3) ? 1 : 0) : (n === 3 ? 1 : 0);\n      }\n    }\n    grid = next;\n  }\n  return out;\n}\n"
+      }
+    },
+    {
+      "slug": "hodgkin-huxley-1952",
+      "title": "A Quantitative Description of Membrane Current and its Application to Conduction and Excitation in Nerve",
+      "shortTitle": "Hodgkin–Huxley Neuron",
+      "authors": ["Alan L. Hodgkin", "Andrew F. Huxley"],
+      "year": 1952,
+      "category": "biology",
+      "tagline": "A four-variable ODE that earned a Nobel — and still defines computational neuroscience.",
+      "originalUrl": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1392413/",
+      "dna": {
+        "title": "Hodgkin–Huxley Membrane Action Potential",
+        "classification": "simulation",
+        "core_algorithm": "A conductance-based model of the squid giant axon membrane. Voltage V evolves under capacitive, sodium, potassium, and leak currents; the sodium and potassium conductances depend on three gating variables m, h, n that themselves evolve under voltage-dependent rate constants. Injecting current above threshold produces the characteristic fast-rising / slow-recovering action potential spike train.",
+        "equations": [
+          "C_m \\frac{dV}{dt} = I_{inj} - g_{Na} m^3 h (V - E_{Na}) - g_K n^4 (V - E_K) - g_L (V - E_L)",
+          "\\frac{dx}{dt} = \\alpha_x(V)(1-x) - \\beta_x(V) x \\quad (x \\in \\{m,h,n\\})"
+        ],
+        "parameters": [
+          { "name": "I_inj", "description": "Injected current (uA/cm^2)", "default_value": 10, "min": 0, "max": 30, "type": "number" },
+          { "name": "T", "description": "Total simulation time (ms)", "default_value": 50, "min": 10, "max": 100, "type": "number" },
+          { "name": "dt", "description": "Time step (ms)", "default_value": 0.01, "min": 0.005, "max": 0.05, "type": "number" },
+          { "name": "gNa", "description": "Maximum sodium conductance", "default_value": 120, "min": 60, "max": 200, "type": "number" },
+          { "name": "gK", "description": "Maximum potassium conductance", "default_value": 36, "min": 18, "max": 60, "type": "number" }
+        ],
+        "visualization_type": "2d_chart",
+        "code_kernel": "export default function(params) {\n  const I = params.I_inj ?? 10;\n  const T = Math.max(10, Math.min(100, params.T ?? 50));\n  const dt = Math.max(0.005, Math.min(0.05, params.dt ?? 0.01));\n  const N = Math.floor(T / dt);\n  const Cm = 1.0;\n  const gNa = params.gNa ?? 120;\n  const gK = params.gK ?? 36;\n  const gL = 0.3;\n  const ENa = 50, EK = -77, EL = -54.4;\n  let V = -65, m = 0.05, h = 0.6, n = 0.32;\n  const safe = (v, fn) => (Math.abs(v) < 1e-7 ? fn(1e-7) : fn(v));\n  const am = (V) => safe(V + 40, (d) => 0.1 * d / (1 - Math.exp(-d / 10)));\n  const bm = (V) => 4 * Math.exp(-(V + 65) / 18);\n  const ah = (V) => 0.07 * Math.exp(-(V + 65) / 20);\n  const bh = (V) => 1 / (1 + Math.exp(-(V + 35) / 10));\n  const an = (V) => safe(V + 55, (d) => 0.01 * d / (1 - Math.exp(-d / 10)));\n  const bn = (V) => 0.125 * Math.exp(-(V + 65) / 80);\n  const stride = Math.max(1, Math.floor(N / 1500));\n  const out = [];\n  for (let i = 0; i < N; i++) {\n    const aM = am(V), bM = bm(V);\n    const aH = ah(V), bH = bh(V);\n    const aN = an(V), bN = bn(V);\n    m += dt * (aM * (1 - m) - bM * m);\n    h += dt * (aH * (1 - h) - bH * h);\n    n += dt * (aN * (1 - n) - bN * n);\n    const INa = gNa * m * m * m * h * (V - ENa);\n    const IK = gK * n * n * n * n * (V - EK);\n    const IL = gL * (V - EL);\n    V += dt * (I - INa - IK - IL) / Cm;\n    if (i % stride === 0) out.push({ t: i * dt, V, m, h, n });\n  }\n  return out;\n}\n"
+      }
+    },
+    {
+      "slug": "adam-optimizer-2014",
+      "title": "Adam: A Method for Stochastic Optimization",
+      "shortTitle": "Adam Optimizer",
+      "authors": ["Diederik P. Kingma", "Jimmy Ba"],
+      "year": 2014,
+      "category": "ml",
+      "tagline": "Adaptive moment estimation — the default optimizer powering most of modern deep learning.",
+      "originalUrl": "https://arxiv.org/abs/1412.6980",
+      "dna": {
+        "title": "Adam vs Vanilla Gradient Descent on the Rosenbrock Function",
+        "classification": "optimization",
+        "core_algorithm": "Adam tracks per-parameter exponential moving averages of the gradient (first moment) and its square (second moment), bias-corrects them, and steps with a learning rate scaled by the inverse square root of the second moment. The kernel runs Adam alongside vanilla gradient descent on the Rosenbrock banana function and emits both loss curves so you can watch Adam follow the curved valley while plain SGD oscillates.",
+        "equations": [
+          "m_t = \\beta_1 m_{t-1} + (1 - \\beta_1) g_t",
+          "v_t = \\beta_2 v_{t-1} + (1 - \\beta_2) g_t^2",
+          "\\hat{m}_t = m_t / (1 - \\beta_1^t),\\quad \\hat{v}_t = v_t / (1 - \\beta_2^t)",
+          "\\theta_t = \\theta_{t-1} - \\eta\\, \\hat{m}_t / (\\sqrt{\\hat{v}_t} + \\varepsilon)"
+        ],
+        "parameters": [
+          { "name": "lr", "description": "Adam learning rate", "default_value": 0.05, "min": 0.001, "max": 0.5, "type": "number" },
+          { "name": "beta1", "description": "First-moment decay", "default_value": 0.9, "min": 0.5, "max": 0.999, "type": "number" },
+          { "name": "beta2", "description": "Second-moment decay", "default_value": 0.999, "min": 0.9, "max": 0.9999, "type": "number" },
+          { "name": "T", "description": "Number of steps", "default_value": 200, "min": 20, "max": 500, "type": "number" },
+          { "name": "x0", "description": "Starting x", "default_value": -1.5, "min": -3, "max": 3, "type": "number" },
+          { "name": "y0", "description": "Starting y", "default_value": 2.0, "min": -3, "max": 4, "type": "number" }
+        ],
+        "visualization_type": "2d_chart",
+        "code_kernel": "export default function(params) {\n  const lr = Math.max(0.001, Math.min(0.5, params.lr ?? 0.05));\n  const beta1 = Math.max(0.5, Math.min(0.9999, params.beta1 ?? 0.9));\n  const beta2 = Math.max(0.5, Math.min(0.99999, params.beta2 ?? 0.999));\n  const eps = 1e-8;\n  const T = Math.max(20, Math.min(500, (params.T | 0) || 200));\n  const f = (x, y) => (1 - x) * (1 - x) + 100 * (y - x * x) * (y - x * x);\n  const grad = (x, y) => [\n    -2 * (1 - x) - 400 * x * (y - x * x),\n    200 * (y - x * x),\n  ];\n  let xA = params.x0 ?? -1.5, yA = params.y0 ?? 2.0;\n  let mAx = 0, mAy = 0, vAx = 0, vAy = 0;\n  let xS = xA, yS = yA;\n  const lrSGD = lr * 0.4;\n  const out = [];\n  for (let t = 1; t <= T; t++) {\n    const [gAx, gAy] = grad(xA, yA);\n    mAx = beta1 * mAx + (1 - beta1) * gAx;\n    mAy = beta1 * mAy + (1 - beta1) * gAy;\n    vAx = beta2 * vAx + (1 - beta2) * gAx * gAx;\n    vAy = beta2 * vAy + (1 - beta2) * gAy * gAy;\n    const mhX = mAx / (1 - Math.pow(beta1, t));\n    const mhY = mAy / (1 - Math.pow(beta1, t));\n    const vhX = vAx / (1 - Math.pow(beta2, t));\n    const vhY = vAy / (1 - Math.pow(beta2, t));\n    xA -= lr * mhX / (Math.sqrt(vhX) + eps);\n    yA -= lr * mhY / (Math.sqrt(vhY) + eps);\n    const [gSx, gSy] = grad(xS, yS);\n    xS -= lrSGD * gSx;\n    yS -= lrSGD * gSy;\n    out.push({ t, adam_loss: f(xA, yA), sgd_loss: f(xS, yS) });\n  }\n  return out;\n}\n"
+      }
+    },
+    {
+      "slug": "verlet-integration-1967",
+      "title": "Computer 'Experiments' on Classical Fluids. I. Thermodynamical Properties of Lennard-Jones Molecules",
+      "shortTitle": "Velocity Verlet",
+      "authors": ["Loup Verlet"],
+      "year": 1967,
+      "category": "physics",
+      "tagline": "The symplectic integrator that conserves energy when Euler quietly explodes.",
+      "originalUrl": "https://journals.aps.org/pr/abstract/10.1103/PhysRev.159.98",
+      "dna": {
+        "title": "Velocity-Verlet vs Forward Euler — Energy Conservation",
+        "classification": "simulation",
+        "core_algorithm": "Velocity-Verlet is a second-order symplectic integrator: it advances position using current velocity and acceleration, then advances velocity using the average of old and new accelerations. On Hamiltonian systems it preserves a shadow Hamiltonian very close to the true one, so total energy oscillates around its initial value rather than drifting. The kernel integrates a unit-mass harmonic oscillator under both Verlet and forward Euler and emits each method's total mechanical energy so you can watch Euler bleed energy and Verlet stay stable.",
+        "equations": [
+          "x_{n+1} = x_n + v_n \\Delta t + \\tfrac{1}{2} a_n \\Delta t^2",
+          "v_{n+1} = v_n + \\tfrac{1}{2} (a_n + a_{n+1}) \\Delta t",
+          "E = \\tfrac{1}{2} v^2 + \\tfrac{1}{2} k x^2"
+        ],
+        "parameters": [
+          { "name": "k", "description": "Spring constant", "default_value": 1, "min": 0.1, "max": 10, "type": "number" },
+          { "name": "dt", "description": "Integration step", "default_value": 0.05, "min": 0.005, "max": 0.2, "type": "number" },
+          { "name": "T", "description": "Number of steps", "default_value": 800, "min": 50, "max": 2000, "type": "number" },
+          { "name": "x0", "description": "Initial displacement", "default_value": 1, "min": -2, "max": 2, "type": "number" }
+        ],
+        "visualization_type": "2d_chart",
+        "code_kernel": "export default function(params) {\n  const k = Math.max(0.05, Math.min(20, params.k ?? 1));\n  const dt = Math.max(0.001, Math.min(0.25, params.dt ?? 0.05));\n  const T = Math.max(50, Math.min(2000, (params.T | 0) || 800));\n  const x0 = params.x0 ?? 1;\n  let xV = x0, vV = 0, aV = -k * xV;\n  let xE = x0, vE = 0;\n  const energy = (x, v) => 0.5 * v * v + 0.5 * k * x * x;\n  const out = [{ t: 0, verlet_E: energy(xV, vV), euler_E: energy(xE, vE) }];\n  for (let i = 1; i <= T; i++) {\n    const xNew = xV + vV * dt + 0.5 * aV * dt * dt;\n    const aNew = -k * xNew;\n    const vNew = vV + 0.5 * (aV + aNew) * dt;\n    xV = xNew; vV = vNew; aV = aNew;\n    const aE = -k * xE;\n    xE += vE * dt;\n    vE += aE * dt;\n    out.push({ t: i * dt, verlet_E: energy(xV, vV), euler_E: energy(xE, vE) });\n  }\n  return out;\n}\n"
+      }
+    },
+    {
+      "slug": "gray-scott-reaction-diffusion",
+      "title": "The Chemical Basis of Morphogenesis",
+      "shortTitle": "Gray–Scott Patterns",
+      "authors": ["Alan M. Turing", "P. Gray", "S. K. Scott"],
+      "year": 1952,
+      "category": "biology",
+      "tagline": "Diffusion + autocatalysis = stripes, spots, and spirals out of a uniform soup.",
+      "originalUrl": "https://royalsocietypublishing.org/doi/10.1098/rstb.1952.0012",
+      "dna": {
+        "title": "Gray–Scott Reaction-Diffusion (Turing-Style Morphogenesis)",
+        "classification": "simulation",
+        "core_algorithm": "Two chemicals U and V diffuse and react on a 2D grid: U is consumed by an autocatalytic step that produces V, while V decays back to nothing. With suitable feed and kill rates, the homogeneous steady state is unstable to spatial perturbations — small seeds grow into stable spot, stripe, or spiral patterns. The kernel runs the Gray-Scott PDE on a torus and emits the spatial variance of V over time as a single morphogenesis curve.",
+        "equations": [
+          "\\partial_t U = D_u \\nabla^2 U - U V^2 + F (1 - U)",
+          "\\partial_t V = D_v \\nabla^2 V + U V^2 - (F + k) V"
+        ],
+        "parameters": [
+          { "name": "Du", "description": "Diffusion coefficient of U", "default_value": 0.16, "min": 0.05, "max": 0.3, "type": "number" },
+          { "name": "Dv", "description": "Diffusion coefficient of V", "default_value": 0.08, "min": 0.02, "max": 0.2, "type": "number" },
+          { "name": "F", "description": "Feed rate", "default_value": 0.04, "min": 0.01, "max": 0.1, "type": "number" },
+          { "name": "k", "description": "Kill rate", "default_value": 0.06, "min": 0.03, "max": 0.08, "type": "number" },
+          { "name": "T", "description": "Number of time steps", "default_value": 240, "min": 60, "max": 500, "type": "number" }
+        ],
+        "visualization_type": "2d_chart",
+        "code_kernel": "export default function(params) {\n  const W = 48, H = 48;\n  const Du = Math.max(0.01, params.Du ?? 0.16);\n  const Dv = Math.max(0.01, params.Dv ?? 0.08);\n  const F = Math.max(0.001, params.F ?? 0.04);\n  const k = Math.max(0.001, params.k ?? 0.06);\n  const T = Math.max(60, Math.min(500, (params.T | 0) || 240));\n  let u = new Float32Array(W * H);\n  let v = new Float32Array(W * H);\n  for (let i = 0; i < u.length; i++) { u[i] = 1; v[i] = 0; }\n  const cx = (W / 2) | 0, cy = (H / 2) | 0;\n  for (let dy = -3; dy <= 3; dy++) {\n    for (let dx = -3; dx <= 3; dx++) {\n      const idx = (cy + dy) * W + (cx + dx);\n      u[idx] = 0.5; v[idx] = 0.25;\n    }\n  }\n  const out = [];\n  const un = new Float32Array(W * H);\n  const vn = new Float32Array(W * H);\n  for (let t = 0; t < T; t++) {\n    for (let y = 0; y < H; y++) {\n      const ym = (y - 1 + H) % H, yp = (y + 1) % H;\n      for (let x = 0; x < W; x++) {\n        const xm = (x - 1 + W) % W, xp = (x + 1) % W;\n        const i = y * W + x;\n        const lu = u[ym * W + x] + u[yp * W + x] + u[y * W + xm] + u[y * W + xp] - 4 * u[i];\n        const lv = v[ym * W + x] + v[yp * W + x] + v[y * W + xm] + v[y * W + xp] - 4 * v[i];\n        const uvv = u[i] * v[i] * v[i];\n        un[i] = u[i] + Du * lu - uvv + F * (1 - u[i]);\n        vn[i] = v[i] + Dv * lv + uvv - (F + k) * v[i];\n      }\n    }\n    u.set(un); v.set(vn);\n    let mu = 0, mv = 0;\n    for (let i = 0; i < u.length; i++) { mu += u[i]; mv += v[i]; }\n    mu /= u.length; mv /= v.length;\n    let sv = 0;\n    for (let i = 0; i < u.length; i++) { const d = v[i] - mv; sv += d * d; }\n    out.push({ t, u_mean: mu, v_mean: mv, v_variance: sv / u.length });\n  }\n  return out;\n}\n"
+      }
+    },
+    {
+      "slug": "hopfield-network-1982",
+      "title": "Neural networks and physical systems with emergent collective computational abilities",
+      "shortTitle": "Hopfield Network",
+      "authors": ["John J. Hopfield"],
+      "year": 1982,
+      "category": "ml",
+      "tagline": "An associative memory whose recall is gradient descent on a Lyapunov energy.",
+      "originalUrl": "https://www.pnas.org/doi/10.1073/pnas.79.8.2554",
+      "dna": {
+        "title": "Hopfield Network — Energy Descent During Associative Recall",
+        "classification": "neural_network",
+        "core_algorithm": "Stores P binary patterns in a symmetric weight matrix via a Hebbian outer-product rule. Asynchronous sign-updates on a noisy probe state monotonically decrease a quadratic Lyapunov energy, so the dynamics flow into the nearest stored pattern. The kernel records the energy and the overlap with the target pattern over time — the energy must decrease monotonically and the overlap should approach 1 as recall completes.",
+        "equations": [
+          "W_{ij} = \\frac{1}{N} \\sum_{p=1}^{P} \\xi_i^p \\xi_j^p \\quad (i \\ne j)",
+          "s_i^{(t+1)} = \\operatorname{sgn}\\!\\left( \\sum_{j} W_{ij} s_j^{(t)} \\right)",
+          "E = -\\tfrac{1}{2} \\sum_{i,j} W_{ij} s_i s_j"
+        ],
+        "parameters": [
+          { "name": "N", "description": "Network size (neurons)", "default_value": 48, "min": 16, "max": 96, "type": "number" },
+          { "name": "P", "description": "Number of stored patterns", "default_value": 3, "min": 1, "max": 8, "type": "number" },
+          { "name": "noise", "description": "Initial bit-flip fraction in probe", "default_value": 0.3, "min": 0, "max": 0.5, "type": "number" },
+          { "name": "T", "description": "Update sweeps", "default_value": 60, "min": 5, "max": 200, "type": "number" },
+          { "name": "seed", "description": "PRNG seed", "default_value": 7, "min": 1, "max": 9999, "type": "number" }
+        ],
+        "visualization_type": "2d_chart",
+        "code_kernel": "export default function(params) {\n  const N = Math.max(16, Math.min(96, (params.N | 0) || 48));\n  const P = Math.max(1, Math.min(8, (params.P | 0) || 3));\n  const T = Math.max(5, Math.min(200, (params.T | 0) || 60));\n  const noise = Math.max(0, Math.min(0.5, params.noise ?? 0.3));\n  let rng = ((params.seed | 0) || 7) >>> 0;\n  const rand = () => { rng = (Math.imul(rng, 1664525) + 1013904223) >>> 0; return rng / 4294967296; };\n  const sgn = (x) => (x >= 0 ? 1 : -1);\n  const patterns = [];\n  for (let p = 0; p < P; p++) {\n    const v = new Int8Array(N);\n    for (let i = 0; i < N; i++) v[i] = rand() < 0.5 ? -1 : 1;\n    patterns.push(v);\n  }\n  const W = new Float32Array(N * N);\n  for (let p = 0; p < P; p++) {\n    const v = patterns[p];\n    for (let i = 0; i < N; i++) {\n      for (let j = 0; j < N; j++) {\n        if (i !== j) W[i * N + j] += v[i] * v[j];\n      }\n    }\n  }\n  for (let i = 0; i < W.length; i++) W[i] /= N;\n  const s = new Int8Array(N);\n  for (let i = 0; i < N; i++) s[i] = patterns[0][i];\n  const flips = Math.floor(N * noise);\n  for (let f = 0; f < flips; f++) {\n    const idx = Math.floor(rand() * N);\n    s[idx] = -s[idx];\n  }\n  const energy = () => {\n    let e = 0;\n    for (let i = 0; i < N; i++) {\n      for (let j = 0; j < N; j++) e -= W[i * N + j] * s[i] * s[j];\n    }\n    return e / 2;\n  };\n  const overlapWith = (p) => {\n    let o = 0;\n    for (let i = 0; i < N; i++) o += s[i] * patterns[p][i];\n    return o / N;\n  };\n  const out = [{ step: 0, energy: energy(), overlap: overlapWith(0) }];\n  for (let t = 1; t <= T; t++) {\n    for (let k = 0; k < N; k++) {\n      const i = Math.floor(rand() * N);\n      let h = 0;\n      for (let j = 0; j < N; j++) h += W[i * N + j] * s[j];\n      s[i] = sgn(h);\n    }\n    out.push({ step: t, energy: energy(), overlap: overlapWith(0) });\n  }\n  return out;\n}\n"
+      }
+    },
+    {
+      "slug": "logistic-map-may-1976",
+      "title": "Simple mathematical models with very complicated dynamics",
+      "shortTitle": "Logistic Map",
+      "authors": ["Robert M. May"],
+      "year": 1976,
+      "category": "math",
+      "tagline": "One parameter r, one quadratic map, and the entire route from order to chaos.",
+      "originalUrl": "https://www.nature.com/articles/261459a0",
+      "dna": {
+        "title": "Logistic Map — The Period-Doubling Route to Chaos",
+        "classification": "simulation",
+        "core_algorithm": "The map x_{n+1} = r x_n (1 - x_n) is the simplest dynamical system that exhibits the full period-doubling cascade. As r increases past about 3, fixed points become 2-cycles, 4-cycles, 8-cycles, ... at decreasing intervals, accumulating at the Feigenbaum point (~3.5699) beyond which the dynamics become chaotic with windows of order. The kernel iterates the map past a transient and emits the long-term trajectory.",
+        "equations": [
+          "x_{n+1} = r\\, x_n (1 - x_n)"
+        ],
+        "parameters": [
+          { "name": "r", "description": "Growth rate (chaotic for r > ~3.57)", "default_value": 3.7, "min": 0.5, "max": 4, "type": "number" },
+          { "name": "x0", "description": "Initial condition", "default_value": 0.5, "min": 0.01, "max": 0.99, "type": "number" },
+          { "name": "N", "description": "Iterations to record (transient skipped)", "default_value": 500, "min": 50, "max": 2000, "type": "number" },
+          { "name": "transient", "description": "Iterations to discard before recording", "default_value": 200, "min": 0, "max": 1000, "type": "number" }
+        ],
+        "visualization_type": "2d_chart",
+        "code_kernel": "export default function(params) {\n  const r = Math.max(0.5, Math.min(4, params.r ?? 3.7));\n  const N = Math.max(50, Math.min(2000, (params.N | 0) || 500));\n  const transient = Math.max(0, Math.min(2000, (params.transient | 0) || 200));\n  let x = Math.max(0.001, Math.min(0.999, params.x0 ?? 0.5));\n  for (let i = 0; i < transient; i++) x = r * x * (1 - x);\n  const out = [];\n  for (let i = 0; i < N; i++) {\n    x = r * x * (1 - x);\n    out.push({ n: i, x });\n  }\n  return out;\n}\n"
+      }
+    },
+    {
+      "slug": "diffusion-limited-aggregation-1981",
+      "title": "Diffusion-Limited Aggregation, a Kinetic Critical Phenomenon",
+      "shortTitle": "Diffusion-Limited Aggregation",
+      "authors": ["T. A. Witten Jr.", "L. M. Sander"],
+      "year": 1981,
+      "category": "chemistry",
+      "tagline": "Random walkers stick on contact — and out grows a fractal of dimension ≈ 1.71.",
+      "originalUrl": "https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.47.1400",
+      "dna": {
+        "title": "Diffusion-Limited Aggregation — Fractal Cluster Growth",
+        "classification": "simulation",
+        "core_algorithm": "Seed a cluster with one occupied cell at the origin. Spawn a particle on a circle just beyond the current cluster radius, let it random-walk on the lattice, and stick it permanently the first time it touches a neighbor of the cluster. Repeating this grows a branching, screened, scale-invariant cluster whose radius scales as a power of the particle count — the canonical kinetic-critical fractal.",
+        "equations": [
+          "R(N) \\sim N^{1/D},\\quad D \\approx 1.71 \\;\\;(2D\\text{ DLA})"
+        ],
+        "parameters": [
+          { "name": "N", "description": "Particles to aggregate", "default_value": 250, "min": 30, "max": 600, "type": "number" },
+          { "name": "size", "description": "Lattice edge length", "default_value": 81, "min": 41, "max": 121, "type": "number" },
+          { "name": "seed", "description": "PRNG seed", "default_value": 11, "min": 1, "max": 9999, "type": "number" }
+        ],
+        "visualization_type": "2d_chart",
+        "code_kernel": "export default function(params) {\n  const W = Math.max(41, Math.min(121, (params.size | 0) || 81)) | 1;\n  const H = W;\n  const cx = (W / 2) | 0, cy = (H / 2) | 0;\n  const N = Math.max(30, Math.min(600, (params.N | 0) || 250));\n  let rng = ((params.seed | 0) || 11) >>> 0;\n  const rand = () => { rng = (Math.imul(rng, 1664525) + 1013904223) >>> 0; return rng / 4294967296; };\n  const occupied = new Uint8Array(W * H);\n  occupied[cy * W + cx] = 1;\n  let maxR = 0;\n  const out = [{ particle: 0, max_radius: 0, log_radius: 0, log_count: 0 }];\n  for (let p = 1; p <= N; p++) {\n    const r0 = Math.min(W / 2 - 2, maxR + 4);\n    const theta = rand() * 2 * Math.PI;\n    let px = Math.round(cx + r0 * Math.cos(theta));\n    let py = Math.round(cy + r0 * Math.sin(theta));\n    let stuck = false;\n    let steps = 0;\n    const maxSteps = 4000;\n    while (!stuck && steps < maxSteps) {\n      for (let dy = -1; dy <= 1 && !stuck; dy++) {\n        for (let dx = -1; dx <= 1 && !stuck; dx++) {\n          if (dx === 0 && dy === 0) continue;\n          const nx = px + dx, ny = py + dy;\n          if (nx >= 0 && nx < W && ny >= 0 && ny < H && occupied[ny * W + nx]) {\n            stuck = true;\n          }\n        }\n      }\n      if (stuck) break;\n      const m = rand();\n      if (m < 0.25) px++; else if (m < 0.5) px--; else if (m < 0.75) py++; else py--;\n      if (px < 1) px = 1; if (px >= W - 1) px = W - 2;\n      if (py < 1) py = 1; if (py >= H - 1) py = H - 2;\n      steps++;\n    }\n    if (stuck && px > 0 && px < W - 1 && py > 0 && py < H - 1) {\n      occupied[py * W + px] = 1;\n      const dx = px - cx, dy = py - cy;\n      const r = Math.sqrt(dx * dx + dy * dy);\n      if (r > maxR) maxR = r;\n      out.push({ particle: p, max_radius: maxR, log_radius: Math.log10(Math.max(0.01, maxR)), log_count: Math.log10(p) });\n    }\n  }\n  return out;\n}\n"
+      }
+    },
+    {
+      "slug": "genetic-algorithm-holland-1975",
+      "title": "Adaptation in Natural and Artificial Systems",
+      "shortTitle": "Genetic Algorithm",
+      "authors": ["John H. Holland"],
+      "year": 1975,
+      "category": "ml",
+      "tagline": "Evolution as optimization — selection, crossover, mutation on a real-valued genome.",
+      "originalUrl": "https://mitpress.mit.edu/9780262581110/adaptation-in-natural-and-artificial-systems/",
+      "dna": {
+        "title": "Genetic Algorithm — Climbing a Multimodal Fitness Landscape",
+        "classification": "optimization",
+        "core_algorithm": "A population of real-valued chromosomes is scored on a multimodal fitness function (sum of three Gaussian peaks). Each generation, tournament selection picks the fitter of two random parents, optional crossover blends parents, and Gaussian mutation perturbs the offspring. Over many generations the population concentrates on the highest peak — though premature convergence to a smaller peak is possible if the mutation rate or pop size is too low. The kernel emits best and mean fitness per generation.",
+        "equations": [
+          "f(x) = e^{-(x-2)^2/0.5} + 1.5\\, e^{-(x-5)^2/0.3} + 0.8\\, e^{-(x-8)^2/0.4}",
+          "x'_i = \\alpha\\, x_a + (1 - \\alpha)\\, x_b \\;+\\; \\mathcal{N}(0, \\sigma)"
+        ],
+        "parameters": [
+          { "name": "pop", "description": "Population size", "default_value": 40, "min": 10, "max": 100, "type": "number" },
+          { "name": "G", "description": "Generations", "default_value": 100, "min": 10, "max": 250, "type": "number" },
+          { "name": "mutationRate", "description": "Mutation probability per individual", "default_value": 0.15, "min": 0, "max": 0.6, "type": "number" },
+          { "name": "mutationSigma", "description": "Mutation step size", "default_value": 0.5, "min": 0.05, "max": 2, "type": "number" },
+          { "name": "seed", "description": "PRNG seed", "default_value": 5, "min": 1, "max": 9999, "type": "number" }
+        ],
+        "visualization_type": "2d_chart",
+        "code_kernel": "export default function(params) {\n  const popSize = Math.max(10, Math.min(100, (params.pop | 0) || 40));\n  const G = Math.max(10, Math.min(250, (params.G | 0) || 100));\n  const mutationRate = Math.max(0, Math.min(0.8, params.mutationRate ?? 0.15));\n  const sigma = Math.max(0.01, Math.min(2.5, params.mutationSigma ?? 0.5));\n  let rng = ((params.seed | 0) || 5) >>> 0;\n  const rand = () => { rng = (Math.imul(rng, 1664525) + 1013904223) >>> 0; return rng / 4294967296; };\n  const gauss = () => {\n    const u = Math.max(1e-9, rand()), v = rand();\n    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);\n  };\n  const fitness = (x) => Math.exp(-((x - 2) * (x - 2)) / 0.5)\n    + 1.5 * Math.exp(-((x - 5) * (x - 5)) / 0.3)\n    + 0.8 * Math.exp(-((x - 8) * (x - 8)) / 0.4);\n  let pop = new Array(popSize);\n  for (let i = 0; i < popSize; i++) pop[i] = rand() * 10;\n  const out = [];\n  for (let g = 0; g < G; g++) {\n    const fits = pop.map(fitness);\n    let best = -Infinity, sum = 0;\n    for (let i = 0; i < popSize; i++) { if (fits[i] > best) best = fits[i]; sum += fits[i]; }\n    out.push({ g, best, mean: sum / popSize });\n    const next = new Array(popSize);\n    for (let i = 0; i < popSize; i++) {\n      const a = Math.floor(rand() * popSize), b = Math.floor(rand() * popSize);\n      let parent = fits[a] > fits[b] ? pop[a] : pop[b];\n      if (rand() < 0.5) {\n        const c = Math.floor(rand() * popSize);\n        const alpha = rand();\n        parent = alpha * parent + (1 - alpha) * pop[c];\n      }\n      if (rand() < mutationRate) parent += sigma * gauss();\n      if (parent < 0) parent = 0; if (parent > 10) parent = 10;\n      next[i] = parent;\n    }\n    pop = next;\n  }\n  return out;\n}\n"
+      }
+    },
+    {
+      "slug": "newton-raphson-method",
+      "title": "De analysi per aequationes numero terminorum infinitas",
+      "shortTitle": "Newton–Raphson Method",
+      "authors": ["Isaac Newton", "Joseph Raphson"],
+      "year": 1690,
+      "category": "math",
+      "tagline": "Quadratic convergence: every iteration roughly doubles the number of correct digits.",
+      "originalUrl": "https://en.wikipedia.org/wiki/Newton%27s_method",
+      "dna": {
+        "title": "Newton–Raphson — Quadratic Convergence to a Root",
+        "classification": "optimization",
+        "core_algorithm": "Iteratively refines a root estimate of f by stepping along the tangent: x_{n+1} = x_n - f(x_n)/f'(x_n). Near a simple root the error squares each iteration — quadratic convergence — so reasonable initial guesses reach machine precision in roughly log_2(precision/error_0) steps. The kernel solves f(x) = x^2 - target = 0 (a square-root finder) and emits both the absolute error and its log_10 so the curvature of convergence is visible.",
+        "equations": [
+          "x_{n+1} = x_n - \\frac{f(x_n)}{f'(x_n)}",
+          "|x_{n+1} - x^*| \\sim |x_n - x^*|^2 \\quad \\text{(simple root)}"
+        ],
+        "parameters": [
+          { "name": "target", "description": "Number to extract square root of", "default_value": 2, "min": 0.1, "max": 1000, "type": "number" },
+          { "name": "x0", "description": "Initial guess", "default_value": 2, "min": 0.001, "max": 100, "type": "number" },
+          { "name": "maxIter", "description": "Maximum iterations", "default_value": 30, "min": 3, "max": 60, "type": "number" }
+        ],
+        "visualization_type": "2d_chart",
+        "code_kernel": "export default function(params) {\n  const target = Math.max(1e-6, params.target ?? 2);\n  const x0 = Math.max(1e-6, params.x0 ?? 2);\n  const maxIter = Math.max(3, Math.min(80, (params.maxIter | 0) || 30));\n  const tol = 1e-15;\n  const f = (x) => x * x - target;\n  const df = (x) => 2 * x;\n  let x = x0;\n  const initialErr = Math.abs(x * x - target);\n  const out = [{ iter: 0, x, error: initialErr, log_error: Math.log10(initialErr + 1e-30) }];\n  for (let i = 1; i <= maxIter; i++) {\n    const denom = df(x);\n    if (Math.abs(denom) < 1e-16) break;\n    x = x - f(x) / denom;\n    const err = Math.abs(x * x - target);\n    out.push({ iter: i, x, error: err, log_error: Math.log10(err + 1e-30) });\n    if (err < tol) break;\n  }\n  return out;\n}\n"
+      }
+    },
+    {
+      "slug": "fourier-square-wave",
+      "title": "Théorie analytique de la chaleur",
+      "shortTitle": "Fourier Series",
+      "authors": ["Joseph Fourier"],
+      "year": 1822,
+      "category": "math",
+      "tagline": "Any periodic function is a sum of sines — and the proof launched modern analysis.",
+      "originalUrl": "https://gallica.bnf.fr/ark:/12148/bpt6k1045508v",
+      "dna": {
+        "title": "Fourier Series — Square Wave Reconstruction",
+        "classification": "data_visualization",
+        "core_algorithm": "The square wave is the limit of an infinite sum of odd-harmonic sines: 4/pi times sum over k of sin((2k-1)x)/(2k-1). The kernel evaluates the partial sum with N harmonics over two periods and emits both the partial-sum approximation and the true square-wave target, so the user can watch Gibbs overshoot near the discontinuities and see the L2 error shrink as N grows.",
+        "equations": [
+          "f_N(t) = \\frac{4}{\\pi} \\sum_{k=1}^{N} \\frac{\\sin((2k-1)\\,2\\pi t)}{2k-1}",
+          "\\lim_{N \\to \\infty} f_N(t) = \\operatorname{sgn}(\\sin(2\\pi t))"
+        ],
+        "parameters": [
+          { "name": "harmonics", "description": "Number of odd harmonics in the partial sum", "default_value": 8, "min": 1, "max": 50, "type": "number" },
+          { "name": "samples", "description": "Samples across two periods", "default_value": 400, "min": 50, "max": 1000, "type": "number" }
+        ],
+        "visualization_type": "2d_chart",
+        "code_kernel": "export default function(params) {\n  const N = Math.max(1, Math.min(50, (params.harmonics | 0) || 8));\n  const samples = Math.max(50, Math.min(1000, (params.samples | 0) || 400));\n  const out = [];\n  for (let i = 0; i < samples; i++) {\n    const t = (i / samples) * 2;\n    let approx = 0;\n    for (let k = 1; k <= N; k++) {\n      const n = 2 * k - 1;\n      approx += Math.sin(2 * Math.PI * n * t) / n;\n    }\n    approx *= 4 / Math.PI;\n    const sin = Math.sin(2 * Math.PI * t);\n    const target = sin > 0 ? 1 : (sin < 0 ? -1 : 0);\n    out.push({ t, approx, target, residual: approx - target });\n  }\n  return out;\n}\n"
+      }
+    }
+  ]
+}
